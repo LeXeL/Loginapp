@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const passport = require('passport');
+const LocalStrategy = require('passport-local');
 
 const User = require('../models/users');
 
@@ -26,7 +28,6 @@ router.post('/register', (req, res) => {
     req.checkBody('password2', 'Passwords do not match').equals(req.body.password);
 
     var errors = req.validationErrors();
-
     if (!errors) {
         var newUser = new User({
             name: name,
@@ -35,16 +36,61 @@ router.post('/register', (req, res) => {
             password: password
         });
         User.createUser(newUser).then((doc) => {
-            console.log(doc);
             req.flash('success_msg', 'You are registered and can now login');
             res.redirect('/users/login');
-        }).catch((e)=>{
-            res.render(errors);
+        }).catch((e) => {
+            res.render('register', {
+                errors: [{
+                    param: 'username',
+                    msg: 'Username all ready exists on the database'
+                }]
+            });
         });
 
     } else {
-        res.render(errors);
+        res.render('register', {
+            errors: errors
+        });
     }
 });
+passport.use(new LocalStrategy((username, password, done) => {
+    User.getUserByUsername(username).then((doc) => {
+        if (!doc) {
+            return done(null, false, {
+                message: 'User not found'
+            });
+        }
+              console.log(doc);
+        var uu = User.comparePassword(doc, password);
 
+            if (!uu) {
+                return done(null, false, {
+                    message: 'Invalid password'
+                });
+            }else{
+              return done(null, doc);
+            }
+
+    });
+}));
+
+passport.serializeUser(function(user, done) {
+    done(null, user.id);
+});
+
+passport.deserializeUser(function(id, done) {
+    User.getUserById(id).then((res) => {
+        done(null, res);
+    }).catch((e) => {
+        console.log(e);
+    });
+});
+
+router.post('/login', passport.authenticate('local', {
+    successRedirect: '/',
+    failureRedirect: '/users/login',
+    failureFlash: true
+}), (req, res) => {
+    res.redirect('/');
+});
 module.exports = router;
