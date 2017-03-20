@@ -40,11 +40,8 @@ UserSchema.statics.createUser = function(newUser) {
 
 UserSchema.statics.comparePassword = function(user, password) {
     bcrypt.compare(password, user.password, (err, res) => {
-        if (res) {
-            return res
-        } else {
-            return false;
-        }
+		console.log(res);
+    	return res;
 
     });
 }

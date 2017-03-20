@@ -61,8 +61,8 @@ passport.use(new LocalStrategy((username, password, done) => {
             });
         }
               console.log(doc);
-        var uu = User.comparePassword(doc, password);
-
+        User.comparePassword(doc, password).then((uu)=>{
+            console.log(uu);
             if (!uu) {
                 return done(null, false, {
                     message: 'Invalid password'
@@ -70,6 +70,9 @@ passport.use(new LocalStrategy((username, password, done) => {
             }else{
               return done(null, doc);
             }
+        });
+
+
 
     });
 }));
