@@ -60,9 +60,11 @@ passport.use(new LocalStrategy((username, password, done) => {
                 message: 'User not found'
             });
         }
-              console.log(doc);
+
+        console.log(doc);
+
         User.comparePassword(doc, password).then((uu)=>{
-            console.log(uu);
+
             if (!uu) {
                 return done(null, false, {
                     message: 'Invalid password'
@@ -70,7 +72,11 @@ passport.use(new LocalStrategy((username, password, done) => {
             }else{
               return done(null, doc);
             }
-        });
+        })
+        .catch((err)=>{
+            console.log('Shit happend');
+            console.log(err);
+        })
 
 
 
@@ -95,5 +101,11 @@ router.post('/login', passport.authenticate('local', {
     failureFlash: true
 }), (req, res) => {
     res.redirect('/');
+});
+
+router.get('/logout', (req, res)=>{
+    req.logout();
+    req.flash('success_msg','You are logged out');
+    res.redirect('/users/login')
 });
 module.exports = router;

@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-
+// const Promise = require('bluebird');
 var UserSchema = mongoose.Schema({
     username: {
         type: String,
@@ -39,30 +39,27 @@ UserSchema.statics.createUser = function(newUser) {
 }
 
 UserSchema.statics.comparePassword = function(user, password) {
-    bcrypt.compare(password, user.password, (err, res) => {
-		console.log(res);
-    	return res;
-
+    return new Promise((resolve, reject) => {
+        bcrypt.compare(password, user.password, (err, res) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(res);
+            }
+        });
     });
+
 }
 
 UserSchema.statics.getUserById = function(id) {
     var User = this;
-    User.findById(id).then((doc) => {
-        if (!doc) {
-            return Promise.reject();
-        }
-        return Promise.resolve(doc);
-    })
+    return User.findById(id);
 }
 UserSchema.statics.getUserByUsername = function(username) {
     var User = this;
     return User.findOne({
         username
-    }).then((doc) => {
-        return doc;
-    })
-
+    });
 }
 
 var User = module.exports = mongoose.model('User', UserSchema);
